@@ -1,8 +1,10 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
-import { ThemeProvider } from "@/components/providers/theme-provider";
 import BackgroundGrid from "@/components/BackgroundGrid";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { SolanaProvider } from "@/components/providers/wallet-provider";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
 
@@ -19,10 +21,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={spaceGrotesk.className} suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <BackgroundGrid />
-          <div className="relative z-10">{children}</div>
-        </ThemeProvider>
+        <QueryProvider>
+          <SolanaProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              <BackgroundGrid />
+              <div className="relative z-10">{children}</div>
+            </ThemeProvider>
+          </SolanaProvider>
+        </QueryProvider>
       </body>
     </html>
   );

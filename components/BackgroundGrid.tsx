@@ -19,9 +19,9 @@ export default function BackgroundGrid() {
           : "hsl(var(--background))",
         backgroundImage: isDark
           ? `
-            radial-gradient(circle at 0.8px 0.8px, rgba(139, 92, 246, 0.2) 0.8px, transparent 0),
-            radial-gradient(circle at 0.8px 0.8px, rgba(59, 130, 246, 0.18) 0.8px, transparent 0),
-            radial-gradient(circle at 0.8px 0.8px, rgba(236, 72, 153, 0.15) 0.8px, transparent 0)`
+            radial-gradient(circle at 0.4px 0.4px, rgba(139, 92, 246, 0.2) 0.4px, transparent 0),
+            radial-gradient(circle at 0.4px 0.4px, rgba(59, 130, 246, 0.18) 0.4px, transparent 0),
+            radial-gradient(circle at 0.4px 0.4px, rgba(236, 72, 153, 0.15) 0.4px, transparent 0)`
           : `
             linear-gradient(to right, rgba(209,213,219,0.8) 1px, transparent 1px),
             linear-gradient(to bottom, rgba(209,213,219,0.8) 1px, transparent 1px),
