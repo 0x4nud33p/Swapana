@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { Navbar } from "./navbar";
 import { SwapCard } from "./swap-card";
 
@@ -17,7 +18,7 @@ export function Swap() {
           <SwapCard />
         </main>
         <footer className="text-center py-6 text-sm text-muted-foreground">
-          <p>Trade with confidence on the decentralized exchange</p>
+          <p>This application is for Devnet use only.</p>
         </footer>
       </div>
     </div>
