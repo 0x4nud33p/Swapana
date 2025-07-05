@@ -1,31 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowUpDown, Settings, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TokenSelector, Token } from "./token-selector";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { fetchTokens } from "@/lib/api";
 
 export function SwapCard() {
-  const [fromToken, setFromToken] = useState<Token | null>({
-    symbol: "ETH",
-    name: "Ethereum", 
-    icon: "🔷",
-    balance: "2.5",
-    price: 2456.78
-  });
-  const [toToken, setToToken] = useState<Token | null>({
-    symbol: "USDC",
-    name: "USD Coin",
-    icon: "💵", 
-    balance: "1,234.56",
-    price: 1.00
-  });
+  const [fromToken, setFromToken] = useState<Token | null>();
+  const [toToken, setToToken] = useState<Token | null>();
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [slippage, setSlippage] = useState(0.5);
+
+  const {
+    data: tokens = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["tokens"],
+    queryFn: fetchTokens,
+  });
 
   const handleSwapTokens = () => {
     const tempToken = fromToken;
@@ -58,10 +57,18 @@ export function SwapCard() {
         <CardTitle className="flex items-center justify-between">
           <span className="text-xl font-bold">Swap</span>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10 dark:hover:bg-white/5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hover:bg-white/10 dark:hover:bg-white/5"
+            >
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10 dark:hover:bg-white/5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hover:bg-white/10 dark:hover:bg-white/5"
+            >
               <Settings className="h-4 w-4" />
             </Button>
           </div>
@@ -80,9 +87,9 @@ export function SwapCard() {
           </div>
           <div className="flex items-center gap-2">
             <TokenSelector
-              selectedToken={fromToken}
+              selectedToken={tokens[0]}
               onTokenSelect={setFromToken}
-              tokens={[]}
+              tokens={tokens}
               className="w-32 flex-shrink-0"
             />
             <Input
@@ -101,7 +108,7 @@ export function SwapCard() {
         </div>
 
         {/* Swap Button */}
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -122,12 +129,13 @@ export function SwapCard() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <TokenSelector
-              selectedToken={toToken}
+              selectedToken={tokens[1]}
               onTokenSelect={setToToken}
-              tokens={[]}
+              tokens={tokens}
               className="w-32 flex-shrink-0"
+              loading={isLoading}
             />
             <Input
               type="number"
@@ -149,10 +157,14 @@ export function SwapCard() {
           <div className="space-y-2 p-3 rounded-lg bg-white/30 dark:bg-white/5 border border-white/20 dark:border-white/10">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Price Impact</span>
-              <span className={cn(
-                "font-medium",
-                parseFloat(priceImpact) > 1 ? "text-yellow-600" : "text-green-600"
-              )}>
+              <span
+                className={cn(
+                  "font-medium",
+                  parseFloat(priceImpact) > 1
+                    ? "text-yellow-600"
+                    : "text-green-600"
+                )}
+              >
                 {priceImpact}
               </span>
             </div>
