@@ -19,17 +19,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <html lang="en" suppressHydrationWarning>
       <body className={spaceGrotesk.className} suppressHydrationWarning>
-        <QueryProvider>
-          <SolanaProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <QueryProvider>
+            <SolanaProvider>
               <BackgroundGrid />
               <div className="relative z-10">{children}</div>
-            </ThemeProvider>
-          </SolanaProvider>
-        </QueryProvider>
-      </body>
+            </SolanaProvider>
+          </QueryProvider>
+        </body>
     </html>
+        </ThemeProvider>
   );
 }
