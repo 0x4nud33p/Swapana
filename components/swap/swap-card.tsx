@@ -9,6 +9,8 @@ import { TokenSelector, Token } from "./token-selector";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { fetchTokens } from "@/lib/api";
+import { getTokenBalance } from "@/lib/api";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 export function SwapCard() {
   const [fromToken, setFromToken] = useState<Token | null>();
@@ -16,6 +18,11 @@ export function SwapCard() {
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [slippage, setSlippage] = useState(0.5);
+  const [fromTokenBalance, setFromTokenBalance] = useState<number | null>(null);
+  const [toTokenBalance, settoTokenBalance] = useState<number | null>(null);
+
+  const { connection } = useConnection();
+  const { publicKey } = useWallet();
 
   const {
     data: tokens = [],
@@ -57,6 +64,26 @@ export function SwapCard() {
       setToToken(tokens[1]);
     }
   }, [tokens]);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (connection && publicKey && fromToken && toToken) {
+        const fromTokenbalance = await getTokenBalance(
+          connection,
+          publicKey,
+          fromToken.tokenProgram
+        );
+        setFromTokenBalance(fromTokenbalance);
+        const toTokenbalance = await getTokenBalance(
+          connection,
+          publicKey,
+          toToken.tokenProgram
+        );
+        settoTokenBalance(toTokenbalance);
+      }
+    };
+    fetchBalance();
+  }, [connection, publicKey, fromToken]);
   
 
   return (
@@ -87,9 +114,9 @@ export function SwapCard() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">From</span>
-            {fromToken?.balance && (
+            {fromToken && (
               <span className="text-muted-foreground">
-                Balance: {fromToken.balance} {fromToken.symbol}
+                Balance: {fromTokenBalance ?? 0}
               </span>
             )}
           </div>
@@ -131,9 +158,9 @@ export function SwapCard() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">To</span>
-            {toToken?.balance && (
+            {toToken && (
               <span className="text-muted-foreground">
-                Balance: {toToken.balance} {toToken.symbol}
+                Balance: {toTokenBalance ?? 0}
               </span>
             )}
           </div>
