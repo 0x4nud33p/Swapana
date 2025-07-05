@@ -51,6 +51,14 @@ export function SwapCard() {
   const estimatedGas = "$12.45";
   const priceImpact = "0.02%";
 
+  useEffect(() => {
+    if (tokens.length > 1 && !fromToken && !toToken) {
+      setFromToken(tokens[0]);
+      setToToken(tokens[1]);
+    }
+  }, [tokens]);
+  
+
   return (
     <Card className="w-full max-w-md mx-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-white/20 dark:border-white/10 shadow-2xl">
       <CardHeader className="pb-4">
@@ -87,7 +95,7 @@ export function SwapCard() {
           </div>
           <div className="flex items-center gap-2">
             <TokenSelector
-              selectedToken={tokens[0]}
+              selectedToken={fromToken!}
               onTokenSelect={setFromToken}
               tokens={tokens}
               className="w-32 flex-shrink-0"
@@ -131,7 +139,7 @@ export function SwapCard() {
           </div>
           <div className="flex items-center gap-4">
             <TokenSelector
-              selectedToken={tokens[1]}
+              selectedToken={toToken!}
               onTokenSelect={setToToken}
               tokens={tokens}
               className="w-32 flex-shrink-0"

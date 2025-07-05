@@ -48,6 +48,7 @@ export function TokenSelector({
   );
 
   const handleTokenSelect = (token: Token) => {
+    console.log("selected token",token);
     onTokenSelect(token);
     setOpen(false);
     setSearchTerm("");
@@ -64,13 +65,21 @@ export function TokenSelector({
         )}
       >
         {selectedToken ? (
-          <div className="flex items-center gap-2">
-            {/* <span className="text-lg">{selectedToken.icon}</span> */}
-            <div className="flex flex-col items-start">
-              <span className="font-medium">{selectedToken.symbol}</span>
-              <span className="text-xs text-muted-foreground">
-                {selectedToken.name}
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0">
+            <Image
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 border border-white/20 dark:border-white/10"
+              src={selectedToken.icon}
+              alt={selectedToken.name}
+              width={40}
+              height={40}
+            />
+            <div className="flex flex-col items-start overflow-hidden">
+              <span className="text-sm sm:text-base font-medium">
+                {selectedToken.symbol}
               </span>
+              {/* <span className="text-[10px] sm:text-xs text-muted-foreground truncate w-full max-w-[10rem] sm:max-w-[14rem]">
+                {selectedToken.name}
+              </span> */}
             </div>
           </div>
         ) : (
@@ -116,7 +125,7 @@ export function TokenSelector({
               <div className="space-y-1 px-2 pb-4">
                 {filteredTokens.map((token) => (
                   <div
-                    key={token.symbol}
+                    key={token.id}
                     className="flex items-center justify-between p-4 mx-2 hover:bg-white/50 dark:hover:bg-white/5 cursor-pointer transition-all duration-200 rounded-lg hover:scale-[1.02] hover:shadow-md"
                     onClick={() => handleTokenSelect(token)}
                   >
