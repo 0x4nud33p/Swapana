@@ -12,6 +12,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { searchToken } from "@/lib/api";
 
 export interface Token {
   id: string;
@@ -36,23 +38,29 @@ export function TokenSelector({
   onTokenSelect,
   tokens,
   className,
-  loading
+  loading,
 }: TokenSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredTokens = tokens.filter(
-    (token) =>
-      token.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      token.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const { data: searchedTokens } = useQuery({
+    queryKey: ["searchToken", searchTerm],
+    queryFn: () => searchToken(searchTerm),
+    enabled: searchTerm.trim().length > 0,
+  });
 
   const handleTokenSelect = (token: Token) => {
-    console.log("selected token",token);
     onTokenSelect(token);
     setOpen(false);
     setSearchTerm("");
   };
+
+  const filteredTokens: Token[] =
+    searchTerm.trim() === ""
+      ? tokens
+      : Array.isArray(searchedTokens)
+      ? searchedTokens
+      : [];
 
   return (
     <>
@@ -77,9 +85,6 @@ export function TokenSelector({
               <span className="text-sm sm:text-base font-medium">
                 {selectedToken.symbol}
               </span>
-              {/* <span className="text-[10px] sm:text-xs text-muted-foreground truncate w-full max-w-[10rem] sm:max-w-[14rem]">
-                {selectedToken.name}
-              </span> */}
             </div>
           </div>
         ) : (
@@ -90,9 +95,6 @@ export function TokenSelector({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md p-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-white/20 dark:border-white/10 shadow-2xl">
-          {/* Blue background overlay */}
-          <div className="fixed inset-0 bg-blue-500/20 dark:bg-blue-600/30 backdrop-blur-sm -z-10" />
-
           <DialogHeader className="p-6 pb-4">
             <DialogTitle className="text-xl font-bold flex items-center justify-between">
               Select Token
