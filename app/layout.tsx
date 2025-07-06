@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Toaster } from "sonner";
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import BackgroundGrid from "@/components/BackgroundGrid";
@@ -25,7 +26,10 @@ export default function RootLayout({
           <QueryProvider>
             <SolanaProvider>
               <BackgroundGrid />
-              <div className="relative z-10">{children}</div>
+              <div className="relative z-10">
+                {children}
+                <Toaster richColors position="bottom-right" />
+              </div>
             </SolanaProvider>
           </QueryProvider>
         </body>
