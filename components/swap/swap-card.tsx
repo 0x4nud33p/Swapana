@@ -18,11 +18,12 @@ export function SwapCard() {
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [slippage, setSlippage] = useState(0.5);
+  const [quoteResponseAmount, setQuoteResponseAmount] = useState<number>(0);
   const [fromTokenBalance, setFromTokenBalance] = useState<number | null>(null);
   const [toTokenBalance, settoTokenBalance] = useState<number | null>(null);
 
   const { connection } = useConnection();
-  const { publicKey } = useWallet();
+  const { publicKey, signTransaction } = useWallet();
 
   const {
     data: tokens = [],
@@ -33,7 +34,7 @@ export function SwapCard() {
     queryFn: fetchTokens,
   });
 
-  const handleSwapTokens = async () => {
+  const handleGetQuoteResponse = async () => {
     if (!fromToken || !toToken) {
       console.log("Select tokens first");
       return;
@@ -69,9 +70,11 @@ export function SwapCard() {
       console.log("Quote data:", quoteResponse);
 
       if (quoteResponse?.outAmount) {
+        setQuoteResponseAmount(quoteResponse.outAmount);
         const uiAmount =
           Number(quoteResponse.outAmount) / 10 ** toToken.decimals!;
         setToAmount(uiAmount.toFixed(6));
+        return quoteResponse;
       } else {
         console.warn("No outAmount in quote response");
         setToAmount("0");
@@ -80,7 +83,49 @@ export function SwapCard() {
       console.error("Error fetching quote:", error);
     }
   };
-  
+
+  const handleSwapTokens = async () => {
+    const quoteResonseForSwap = handleGetQuoteResponse();
+    const swapTxRes = await fetch(
+      `${process.env.NEXT_PUBLIC_JUPITER_QUOTE_API_URL}/swap`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          quoteResonseForSwap,
+          userPublicKey: publicKey,
+          wrapAndUnwrapSol: true,
+        }),
+      }
+    );
+    const { swapTransaction } = await swapTxRes.json();
+    // deserialize the transaction
+    const swapTransactionBuf = Buffer.from(swapTransaction, "base64");
+    var transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+    console.log(transaction);
+
+    // sign the transaction
+    transaction.sign([signTransaction]);
+    // get the latest block hash
+    const latestBlockHash = await connection.getLatestBlockhash();
+
+    // Execute the transaction
+    const rawTransaction = transaction.serialize();
+    const txid = await connection.sendRawTransaction(rawTransaction, {
+      skipPreflight: true,
+      maxRetries: 2,
+    });
+    await connection.confirmTransaction({
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      signature: txid,
+    });
+    console.log(`https://solscan.io/tx/${txid}`);
+  };
+
+
 
   // Function to handle token exchange (swap fromToken and toToken)
   const handleTokenExchange = () => {
@@ -140,6 +185,10 @@ export function SwapCard() {
     };
     fetchBalance();
   }, [connection, publicKey, fromToken]);
+
+  useEffect(() => {
+    handleGetQuoteResponse();
+  }, [fromToken, toToken, fromAmount]);
 
   return (
     <Card className="w-full max-w-md mx-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-white/20 dark:border-white/10 shadow-2xl">
@@ -236,12 +285,11 @@ export function SwapCard() {
               className="flex-1 text-lg font-medium bg-white/30 dark:bg-white/3 border-white/20 dark:border-white/10 cursor-not-allowed"
             />
           </div>
-          {toAmount && toToken && (
+          {toAmount && toToken && quoteResponseAmount && (
             <div className="text-xs text-muted-foreground text-right">
               ≈ ${(parseFloat(toAmount) * toToken.usdPrice!).toLocaleString()}
             </div>
           )}
-          {/* place holder to implement this feature */}
         </div>
 
         {/* Swap Details */}
@@ -277,7 +325,11 @@ export function SwapCard() {
           className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl"
           disabled={!fromAmount || !toAmount}
         >
-          {!fromAmount || !toAmount ? "Enter amount" : "Swap"}
+          {!fromAmount
+            ? "Enter Amount"
+            : !quoteResponseAmount
+            ? "Get Quote"
+            : "Swap"}
         </Button>
       </CardContent>
     </Card>
