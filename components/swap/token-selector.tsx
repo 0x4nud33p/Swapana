@@ -22,7 +22,9 @@ export interface Token {
   icon: string;
   balance?: string;
   price?: number;
+  decimals?: number;
   tokenProgram: string;
+  usdPrice?: number;
 }
 
 interface TokenSelectorProps {

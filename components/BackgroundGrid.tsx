@@ -9,7 +9,7 @@ export default function BackgroundGrid() {
 
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return null; // prevent SSR mismatch
+  if (!mounted) return null;
 
   const isDark = resolvedTheme === "dark";
 
@@ -17,20 +17,19 @@ export default function BackgroundGrid() {
     <div
       className="fixed inset-0 z-0"
       style={{
-        background: "hsl(var(--background))",
+        background: isDark ? "#000000" : "",  
         backgroundImage: isDark
           ? `
-              radial-gradient(circle at 30% 40%, rgba(139,92,246,0.05), transparent 50%),
-              linear-gradient(to bottom, rgba(var(--grid-line) / 0.15) 1px, transparent 1px),
-              radial-gradient(circle at 30% 40%, rgba(139,92,246,0.15), transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(236,72,153,0.1), transparent 60%)`
-          : `
-              linear-gradient(to right, rgba(229,231,235,0.8) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(229,231,235,0.8) 1px, transparent 1px),
-              radial-gradient(circle 500px at 20% 80%, rgba(139,92,246,0.3), transparent),
-              radial-gradient(circle 500px at 80% 20%, rgba(59,130,246,0.3), transparent)`,
+            radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.2) 1px, transparent 0),
+            radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.18) 1px, transparent 0),
+            radial-gradient(circle at 1px 1px, rgba(236, 72, 153, 0.15) 1px, transparent 0)`
+            : `
+            linear-gradient(to right, rgba(229,231,235,0.8) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(229,231,235,0.8) 1px, transparent 1px),
+            radial-gradient(circle 500px at 20% 80%, rgba(139,92,246,0.3), transparent),
+            radial-gradient(circle 500px at 80% 20%, rgba(59,130,246,0.3), transparent)`,
         backgroundSize: isDark
-          ? "40px 40px, 40px 40px, 100% 100%, 100% 100%"
+          ? "20px 20px, 30px 30px, 25px 25px"
           : "48px 48px, 48px 48px, 100% 100%, 100% 100%",
         backgroundAttachment: "fixed",
       }}

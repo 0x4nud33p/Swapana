@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { TokenSelector, Token } from "./token-selector";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { fetchTokens } from "@/lib/api";
+import { fetchTokens, getQuoteAmount } from "@/lib/api";
 import { getTokenBalance } from "@/lib/api";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
@@ -33,14 +33,66 @@ export function SwapCard() {
     queryFn: fetchTokens,
   });
 
-  const handleSwapTokens = () => {
-    const tempToken = fromToken;
+  const handleSwapTokens = async () => {
+    if (!fromToken || !toToken) {
+      console.log("Select tokens first");
+      return;
+    }
+
+    console.log("Swapping tokens...");
+    console.log("From Token:", fromToken.symbol);
+    console.log("To Token:", toToken.symbol);
+    console.log("From Amount:", fromAmount);
+    console.log("To Amount:", toAmount);
+    console.log("Decimals:", fromToken.decimals, toToken.decimals);
+
+    const rawAmount = Math.floor(
+      parseFloat(fromAmount) * 10 ** fromToken.decimals!
+    );
+    const slippageBps = Math.floor(slippage * 100);
+
+    console.log("Swapping tokens:", {
+      fromToken: fromToken.symbol,
+      toToken: toToken.symbol,
+      amount: rawAmount,
+      slippage: slippageBps,
+    });
+
+    try {
+      const quoteResponse = await getQuoteAmount({
+        inputMintAddress: fromToken.id,
+        outputMintAddress: toToken.id,
+        amount: rawAmount,
+        slippage: slippageBps,
+      });
+
+      console.log("Quote data:", quoteResponse);
+
+      if (quoteResponse?.outAmount) {
+        const uiAmount =
+          Number(quoteResponse.outAmount) / 10 ** toToken.decimals!;
+        setToAmount(uiAmount.toFixed(6));
+      } else {
+        console.warn("No outAmount in quote response");
+        setToAmount("0");
+      }
+    } catch (error) {
+      console.error("Error fetching quote:", error);
+    }
+  };
+  
+
+  // Function to handle token exchange (swap fromToken and toToken)
+  const handleTokenExchange = () => {
+    if (!fromToken || !toToken) {
+      console.log("Please select both tokens to swap.");
+      return;
+    }
+    const temp = fromToken;
     setFromToken(toToken);
-    setToToken(tempToken);
-    
-    const tempAmount = fromAmount;
-    setFromAmount(toAmount);
-    setToAmount(tempAmount);
+    setToToken(temp);
+    setFromAmount("");
+    setToAmount("");
   };
 
   const handleFromAmountChange = (value: string) => {
@@ -48,10 +100,14 @@ export function SwapCard() {
     // Mock calculation for demo
     if (value && fromToken && toToken) {
       const mockRate = fromToken.price! / toToken.price!;
-      const calculatedAmount = (parseFloat(value) * mockRate * (1 - slippage / 100)).toFixed(6);
+      const calculatedAmount = (
+        parseFloat(value) *
+        mockRate *
+        (1 - slippage / 100)
+      ).toFixed(6);
       setToAmount(calculatedAmount);
     } else {
-      setToAmount("");
+      ("");
     }
   };
 
@@ -71,20 +127,19 @@ export function SwapCard() {
         const fromTokenbalance = await getTokenBalance(
           connection,
           publicKey,
-          fromToken.tokenProgram
+          fromToken.id
         );
         setFromTokenBalance(fromTokenbalance);
         const toTokenbalance = await getTokenBalance(
           connection,
           publicKey,
-          toToken.tokenProgram
+          toToken.id
         );
         settoTokenBalance(toTokenbalance);
       }
     };
     fetchBalance();
   }, [connection, publicKey, fromToken]);
-  
 
   return (
     <Card className="w-full max-w-md mx-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-white/20 dark:border-white/10 shadow-2xl">
@@ -137,7 +192,8 @@ export function SwapCard() {
           </div>
           {fromAmount && fromToken && (
             <div className="text-xs text-muted-foreground text-right">
-              ≈ ${(parseFloat(fromAmount) * fromToken.price!).toLocaleString()}
+              ≈ $
+              {(parseFloat(fromAmount) * fromToken.usdPrice!).toLocaleString()}
             </div>
           )}
         </div>
@@ -147,7 +203,7 @@ export function SwapCard() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleSwapTokens}
+            onClick={handleTokenExchange}
             className="h-10 w-10 rounded-full bg-white/50 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 border border-white/20 dark:border-white/10 transition-all duration-200 hover:scale-105"
           >
             <ArrowUpDown className="h-5 w-5" />
@@ -182,9 +238,10 @@ export function SwapCard() {
           </div>
           {toAmount && toToken && (
             <div className="text-xs text-muted-foreground text-right">
-              ≈ ${(parseFloat(toAmount) * toToken.price!).toLocaleString()}
+              ≈ ${(parseFloat(toAmount) * toToken.usdPrice!).toLocaleString()}
             </div>
           )}
+          {/* place holder to implement this feature */}
         </div>
 
         {/* Swap Details */}
@@ -216,6 +273,7 @@ export function SwapCard() {
 
         {/* Swap Button */}
         <Button
+          onClick={handleSwapTokens}
           className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl"
           disabled={!fromAmount || !toAmount}
         >
