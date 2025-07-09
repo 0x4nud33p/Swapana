@@ -65,3 +65,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .dark\:radial-glow {
+    background-image: radial-gradient(circle 500px at 50% 100px, rgba(139, 92, 246, 0.4), transparent);
+  }
+}

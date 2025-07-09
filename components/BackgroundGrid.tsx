@@ -17,13 +17,12 @@ export default function BackgroundGrid() {
     <div
       className="fixed inset-0 z-0"
       style={{
-        background: isDark ? "#000000" : "",  
+        background: isDark ? "#020617" : "",
         backgroundImage: isDark
           ? `
-            radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.2) 1px, transparent 0),
-            radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.18) 1px, transparent 0),
-            radial-gradient(circle at 1px 1px, rgba(236, 72, 153, 0.15) 1px, transparent 0)`
-            : `
+            radial-gradient(circle 500px at 50% 100px, rgba(139,92,246,0.4), transparent)
+            `
+          : `
             linear-gradient(to right, rgba(229,231,235,0.8) 1px, transparent 1px),
             linear-gradient(to bottom, rgba(229,231,235,0.8) 1px, transparent 1px),
             radial-gradient(circle 500px at 20% 80%, rgba(139,92,246,0.3), transparent),

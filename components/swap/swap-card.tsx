@@ -29,6 +29,7 @@ export function SwapCard() {
   const [toTokenBalance, setToTokenBalance] = useState<number>(0);
   const [isFetchingQuote, setIsFetchingQuote] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [isTransactionPending, setIsTransactionPending] = useState(false);
 
   const { connection } = useConnection();
   const { publicKey, signTransaction, connected } = useWallet();
@@ -109,7 +110,7 @@ export function SwapCard() {
   // Perform swap transaction
   const handleSwap = useCallback(async () => {
     if (!publicKey || !signTransaction || !quoteResponse) return;
-
+    setIsTransactionPending(true);
     try {
       const swapTxRes = await fetch(
         `${process.env.NEXT_PUBLIC_JUPITER_QUOTE_API_URL}/swap`,
@@ -161,6 +162,8 @@ export function SwapCard() {
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
+    } finally {
+      setIsTransactionPending(false);
     }
   }, [
     publicKey,
@@ -222,7 +225,7 @@ export function SwapCard() {
               className="h-8 w-8 hover:bg-white/10 dark:hover:bg-white/5"
               onClick={fetchTokenBalances}
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw onClick={() => fetchQuote()} className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -362,7 +365,8 @@ export function SwapCard() {
             !toAmount ||
             parseFloat(fromAmount) <= 0 ||
             isFetchingQuote ||
-            !quoteResponse
+            !quoteResponse ||
+            isTransactionPending
           }
         >
           {!connected
@@ -373,6 +377,8 @@ export function SwapCard() {
             ? "Fetching Quote..."
             : quoteError
             ? "Try Again"
+            : isTransactionPending
+            ? "Transaction in progress..."
             : "Swap"}
         </Button>
       </CardContent>
